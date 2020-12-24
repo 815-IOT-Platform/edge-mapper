@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.edgeMapper.EdgeMapper.dao.tdengine.SignsMapper">
+
+    <resultMap id="BaseResultMap" type="com.edgeMapper.EdgeMapper.model.domain.Signs">
+        <id column="ts" jdbcType="TIMESTAMP" property="ts" />
+        <result column="temperature" jdbcType="INTEGER" property="temperature" />
+    </resultMap>
+
+    <update id="createDB" >
+        create database if not exists sl;
+    </update>
+
+    <update id="createTable" >
+        create table if not exists sl.signs(ts timestamp, temperature int);
+    </update>
+
+    <sql id="Base_Column_List">
+        ts, temperature
+    </sql>
+
+    <select id="select" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from signs
+        order by ts desc
+        <if test="limit != null">
+            limit #{limit,jdbcType=BIGINT}
+        </if>
+        <if test="offset != null">
+            offset #{offset,jdbcType=BIGINT}
+        </if>
+    </select>
+
+    <insert id="insert" parameterType="com.edgeMapper.EdgeMapper.model.domain.Signs" >
+        insert into signs (ts, temperature) values (now, #{temperature,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="batchInsert" parameterType="java.util.List" >
+        insert into signs (ts, temperature) values
+        <foreach separator=" " collection="list" item="signs" index="index" >
+            (now + #{index}a, #{signs.temperature})
+        </foreach>
+    </insert>
+
+
+</mapper>

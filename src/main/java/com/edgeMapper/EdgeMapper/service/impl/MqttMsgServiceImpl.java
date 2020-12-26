@@ -97,7 +97,7 @@ public class MqttMsgServiceImpl implements MqttMsgService {
                     this.handleBleWatchPower(data.substring(8,10));
                     break;
                 case "86"://心率、步数、里程、热量、步速
-                    this.handleHeartBeats(data.substring(10,38));
+                    this.handleHeartBeats(data.substring(10));
                     break;
                 case "03":
                     break;
@@ -115,6 +115,30 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         }
     }
 
+    @Override
+    public void reconncetToBleGateway() {
+        String topic = "sys/8cd4950007da/cloud";
+        BleDto bleDto=new BleDto();
+        BleGatewayDto bleGatewayDto=new BleGatewayDto();
+        BleGatewayContentDto bleGatewayContentDto = new BleGatewayContentDto();
+        BleGatewayDataDto bleGatewayDataDto = new BleGatewayDataDto();
+        bleGatewayDto.setType("Down");
+        bleGatewayContentDto.setType("ConnectDeviceLong");
+        bleGatewayDataDto.setData("");
+        bleGatewayDataDto.setMac("EF3AEDFA337C");
+        bleGatewayContentDto.setData(bleGatewayDataDto);
+        bleGatewayDto.setContent(bleGatewayContentDto);
+        bleDto.setComType(bleGatewayDto);
+        String msgBody = JSON.toJSONString(bleDto);
+        MqttMessage msg = new MqttMessage(msgBody.getBytes());
+        log.info("向网关发起重连{}", msgBody);
+        try {
+            mqttClient.publish(topic,msg);
+        } catch (Exception e) {
+            Log.error("重连指令发送异常");
+        }
+    }
+
     private void handleBleWatchPower(String data) {
         int power = 0;
         for (int i=0;i<data.length();i++) {
@@ -124,25 +148,39 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         Map<String,String> properties = new HashMap<>();
         properties.put("power",String.valueOf(power));
         deviceDto.setDeviceName("ble-watch");
-        deviceDto.setPropertyType("realTime");
+        deviceDto.setPropertyType("deviceInfo");
         deviceDto.setProperties(properties);
         log.info("发送手环电量数据{}",deviceDto);
         deviceDataService.processMsg(deviceDto);
     }
 
     private void handleHeartBeats(String data){
-        int cur=0;
-        int heartBeats=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
-        int walkCounts=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0'+4096*(data.charAt(cur++)-'0')+256*(data.charAt(cur++)-'0');
-        int miles=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0'+4096*(data.charAt(cur++)-'0')+256*(data.charAt(cur++)-'0');
-        int calolis=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0'+4096*(data.charAt(cur++)-'0')+256*(data.charAt(cur++)-'0');
-        int speed=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
+        log.info("valid data is {}",data);
+        int heartBeats=16*(data.charAt(0)-'0')+data.charAt(1)-'0';
+        int walkCounts=0,miles=0,calolis=0,speed=0;
+        String w=reverse(data.substring(2,10));
+        String m=reverse(data.substring(10,18));
+        String c=reverse(data.substring(18,26));
+        for(int i=0;i<3;i++){
+            for(int j=0;j<8;j++){
+                switch (i){
+                    case 0:walkCounts+=walkCounts*16+w.charAt(j)-'0';
+                        break;
+                    case 1:miles+=miles*16+m.charAt(j)-'0';
+                        break;
+                    case 2:calolis+=calolis*16+c.charAt(j)-'0';
+                        break;
+                    default:break;
+                }
+            }
+        }
+        speed=16*(data.charAt(26)-'0')+data.charAt(27)-'0';
         DeviceDto deviceDto = new DeviceDto();
         Map<String,String> properties = new HashMap<>();
         properties.put("heartBeats",String.valueOf(heartBeats));
         properties.put("walkCounts",String.valueOf(walkCounts));
         properties.put("miles",String.valueOf(miles));
-        properties.put("calolis",String.valueOf(calolis));
+        properties.put("calories",String.valueOf(calolis));
         properties.put("speed",String.valueOf(speed));
         deviceDto.setDeviceName("ble-watch");
         deviceDto.setPropertyType("realTime");
@@ -150,7 +188,11 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         log.info("发送手环实时数据（心率、步数、里程、热量、步速）{}",deviceDto);
         deviceDataService.processMsg(deviceDto);
     }
-
+    private String reverse(String s){
+        String ans="";
+        ans=s.substring(6,8)+s.substring(4,6)+s.substring(2,4)+s.substring(0,2);
+        return ans;
+    }
     private void handleVersion(String data){
         int cur=0;
         int deviceLow=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';

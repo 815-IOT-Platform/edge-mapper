@@ -12,4 +12,5 @@ public interface MqttMsgService {
 
     public void transferBleGatewayData(String data);
 
+    public void reconncetToBleGateway();
 }

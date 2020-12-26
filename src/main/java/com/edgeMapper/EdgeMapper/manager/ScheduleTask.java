@@ -17,8 +17,8 @@ public class ScheduleTask {
     @Autowired
     @Lazy
     DeviceDataService deviceDataService;
-    @Scheduled(fixedRate = 1000 * 5)
-    public void send(){
+    @Scheduled(fixedRate = 1000 * 2)
+    public void send0(){
         System.out.println("********定时发送模拟设备数据(ble-watch)******");
 //        Random rand=new Random();
 //        int i=rand.nextInt(2);
@@ -29,8 +29,12 @@ public class ScheduleTask {
 //        properties.put("power-status",status);
 //        deviceDto.setProperties(properties);
 //        deviceDataService.processMsg(deviceDto);
-        //deviceDataService.getBleWatchPower();//查看手环电量
-        //deviceDataService.getHeartBeats();//获取实时心率数据
-        //deviceDataService.getVersion();//获取版本号
+        deviceDataService.getBleWatchPower();//查看手环电量
+        deviceDataService.getHeartBeats();//获取实时心率数据
     }
+    @Scheduled(fixedRate = 1000 * 3)
+    public void send1(){
+        deviceDataService.getVersion();//获取版本号
+    }
+
 }

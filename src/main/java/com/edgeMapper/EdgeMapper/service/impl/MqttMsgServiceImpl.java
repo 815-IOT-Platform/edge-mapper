@@ -97,8 +97,12 @@ public class MqttMsgServiceImpl implements MqttMsgService {
                     this.handleBleWatchPower(data.substring(8,10));
                     break;
                 case "86"://心率、步数、里程、热量、步速
-                    this.handleHeartBeats(data.substring(8,36));
+                    this.handleHeartBeats(data.substring(10,38));
+                    break;
                 case "03":
+                    break;
+                case "87"://版本号
+                    this.handleVersion(data.substring(8,16));
                     break;
                 default:
                     break;
@@ -115,28 +119,19 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         Map<String,String> properties = new HashMap<>();
         properties.put("power",String.valueOf(power));
         deviceDto.setDeviceName("ble-watch");
+        deviceDto.setPropertyType("realTime");
         deviceDto.setProperties(properties);
         log.info("发送手环电量数据{}",deviceDto);
         deviceDataService.processMsg(deviceDto);
     }
+
     private void handleHeartBeats(String data){
         int cur=0;
         int heartBeats=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
-        int speed=(data.charAt(cur++)-'0')*16+data.charAt(cur)-'0';
-        int walkCounts=0,miles=0,calolis=0;
-        for(int i=0;i<3;i++){
-            for(int j=0;j<8;j++){
-            switch (i){
-                case 0:walkCounts+=walkCounts*16+data.charAt(cur++)-'0';
-                break;
-                case 1:calolis+=calolis*16+data.charAt(cur++)-'0';
-                break;
-                case 2:miles+=miles*16+data.charAt(cur++)-'0';
-                break;
-                default:break;
-            }
-            }
-        }
+        int walkCounts=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0'+4096*(data.charAt(cur++)-'0')+256*(data.charAt(cur++)-'0');
+        int miles=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0'+4096*(data.charAt(cur++)-'0')+256*(data.charAt(cur++)-'0');
+        int calolis=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0'+4096*(data.charAt(cur++)-'0')+256*(data.charAt(cur++)-'0');
+        int speed=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
         DeviceDto deviceDto = new DeviceDto();
         Map<String,String> properties = new HashMap<>();
         properties.put("heartBeats",String.valueOf(heartBeats));
@@ -145,8 +140,28 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         properties.put("calolis",String.valueOf(calolis));
         properties.put("speed",String.valueOf(speed));
         deviceDto.setDeviceName("ble-watch");
+        deviceDto.setPropertyType("realTime");
         deviceDto.setProperties(properties);
         log.info("发送手环实时数据（心率、步数、里程、热量、步速）{}",deviceDto);
+        deviceDataService.processMsg(deviceDto);
+    }
+
+    private void handleVersion(String data){
+        int cur=0;
+        int deviceLow=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
+        int deviceHigh=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
+        int bluetoothVersion=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
+        int deviceVersion=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
+        DeviceDto deviceDto = new DeviceDto();
+        Map<String,String> properties = new HashMap<>();
+        properties.put("deviceLow",String.valueOf(deviceLow));
+        properties.put("deviceHigh",String.valueOf(deviceHigh));
+        properties.put("bluetoothVersion",String.valueOf(bluetoothVersion));
+        properties.put("deviceVersion",String.valueOf(deviceVersion));
+        deviceDto.setDeviceName("ble-watch");
+        deviceDto.setPropertyType("deviceInfo");
+        deviceDto.setProperties(properties);
+        log.info("发送手环设备标识、蓝牙版本、设备版本{}",deviceDto);
         deviceDataService.processMsg(deviceDto);
     }
 }

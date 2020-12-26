@@ -18,4 +18,12 @@ public interface DeviceDataService {
     public void setWalkCounts(BodyInfoDto bodyInfoDto);
 
     public void getHeartBeats();
+
+    public void getParameters(); //4.2.1
+
+    public void setParameters(Integer is12Hour, Integer isMetric, Integer heartBeatInterval, Integer Fatigue, Integer heartBeatInspection, Integer timeFormat, Integer Language); //4.2.2
+
+    public void getVersion(); //4.7获取软硬件编码
+
+    public void setWalkParameters(Integer height, Integer weight, Integer sex, Integer age); //4.4设置计步参数
 }

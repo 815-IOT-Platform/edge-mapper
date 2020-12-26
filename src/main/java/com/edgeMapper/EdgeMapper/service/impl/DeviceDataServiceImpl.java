@@ -155,13 +155,69 @@ public class DeviceDataServiceImpl implements DeviceDataService {
     }
 
     @Override
-    public void setWalkParameters(Integer height, Integer weight, Integer sex, Integer age){
+    public void setWalkParameters(Integer height, Integer weight, Integer sex, Integer age){ //参数传十进制的
         String order="68040400";
-
+        String heightHex = String.format("%02X",height);
+        log.info("heightHex:"+heightHex);
+        String weightHex = String.format("%02X",weight);
+        String sexHex = String.format("%02X",sex);
+        String ageHex = String.format("%02X",age);
+        order = order + heightHex + weightHex + sexHex + ageHex;
+        String crc = crc(order);
+        order = order + crc +"16";
+        mqttMsgService.launchOrder(order);
     }
 
     public String getBodyInfo(BodyInfoDto bodyInfoDto){
         //todo 转化成16进制
         return "B23C001C";//身高2+体重2+性别2（男：0，女：1）+年龄4:178cm+60kg+男+28岁
+    }
+
+    @Override
+    public void getFunctionStatus (String type){
+        String order="68050200";
+        order+="01";//读取
+        order+=type;//类型
+        order+=crc(order);
+        order+="16";
+        mqttMsgService.launchOrder(order);
+        return;
+    }
+
+    @Override
+    public void setFunctionStatus (String type, String status){
+        String order="68050300";
+        order+="00";//设置
+        order+=type;
+        order+=status;
+        order+=crc(order);
+        order+="16";
+        mqttMsgService.launchOrder(order);
+        return;
+    }
+
+    @Override
+    public String crc (String data){ //计算校验码
+        int i=0;
+        int sum=0;
+        while(i<data.length()){
+            if(data.charAt(i)>='0' && data.charAt(i)<='9'){
+                sum+= 16*(data.charAt(i)-'0');
+            } else{
+                sum = sum + 16*(10 + data.charAt(i) - 'A');
+            }
+            i++;
+            if(data.charAt(i)>='0' && data.charAt(i)<='9'){
+                sum+= data.charAt(i)-'0';
+            } else{
+                sum = sum + 10 + data.charAt(i) - 'A';
+            }
+            i++;
+        }
+        log.info("sum:"+sum);
+        log.info("sumHex:"+String.format("%02X",sum));
+        String a = String.format("%02X",sum);
+        log.info("sumHex2:"+ a.substring(a.length()-2));
+        return a.substring(a.length()-2);
     }
 }

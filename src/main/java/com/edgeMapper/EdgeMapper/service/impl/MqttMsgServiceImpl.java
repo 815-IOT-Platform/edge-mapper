@@ -104,6 +104,11 @@ public class MqttMsgServiceImpl implements MqttMsgService {
                 case "87"://版本号
                     this.handleVersion(data.substring(8,16));
                     break;
+                case "84"://设置计步参数回应
+                    break;
+                case "85"://读取功能是否开启
+                    this.handleFunctionStatus(data.substring(8,14));
+                    break;
                 default:
                     break;
             }
@@ -162,6 +167,75 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         deviceDto.setPropertyType("deviceInfo");
         deviceDto.setProperties(properties);
         log.info("发送手环设备标识、蓝牙版本、设备版本{}",deviceDto);
+        deviceDataService.processMsg(deviceDto);
+    }
+
+    private void handleFunctionStatus(String data){
+        String readOrSet = "read";
+        String type="";
+        String status;
+        log.info("data前两位:"+data.substring(0,2));
+        if(data.substring(0,2).equals("01")){
+            readOrSet = "read";
+        } else {
+            return;
+        }
+        switch (data.substring(2,4)){
+            case "01":
+                type="防丢提醒";
+                break;
+            case "02":
+                type="短信提醒";
+                break;
+            case "03":
+                type="来电提醒";
+                break;
+            case "05":
+                type="蓝牙自动关广播";
+                break;
+            case "06":
+                type="抬手亮屏";
+                break;
+            case "07":
+                type="翻腕切屏";
+                break;
+            case "09":
+                type="微信提醒";
+                break;
+            case "0a":
+                type="QQ提醒";
+                break;
+            case "0b":
+                type="facebook";
+                break;
+            case "0c":
+                type="skype";
+                break;
+            case "0d":
+                type="twitter";
+                break;
+            case "0e":
+                type="whatsAPP";
+                break;
+            case "0f":
+                type="line";
+                break;
+        }
+        log.info("data后两位:"+data.substring(4,6));
+        if(data.substring(4,6).equals("01")){
+            status="TurnOn";
+        } else {
+            status="TurnOff";
+        }
+        DeviceDto deviceDto = new DeviceDto();
+        Map<String,String> properties = new HashMap<>();
+        properties.put("readOrSet",String.valueOf(readOrSet));
+        properties.put("type",String.valueOf(type));
+        properties.put("status",String.valueOf(status));
+        deviceDto.setDeviceName("ble-watch");
+        deviceDto.setPropertyType("deviceInfo");
+        deviceDto.setProperties(properties);
+        log.info("发送手环设备功能状态{}",deviceDto);
         deviceDataService.processMsg(deviceDto);
     }
 }

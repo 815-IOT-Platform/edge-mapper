@@ -29,8 +29,8 @@ public class ScheduleTask {
 //        properties.put("power-status",status);
 //        deviceDto.setProperties(properties);
 //        deviceDataService.processMsg(deviceDto);
-        deviceDataService.getBleWatchPower();//查看手环电量
-        deviceDataService.getHeartBeats();//获取实时心率数据
-        deviceDataService.getVersion();//获取版本号
+        //deviceDataService.getBleWatchPower();//查看手环电量
+        //deviceDataService.getHeartBeats();//获取实时心率数据
+        //deviceDataService.getVersion();//获取版本号
     }
 }

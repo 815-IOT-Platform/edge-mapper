@@ -87,4 +87,11 @@ public class testController {
 
         return ruleMapper.insert1(rule);
     }
+
+    @PostMapping("/test")
+    @ApiOperation("test")
+    public int test(@RequestParam String type){
+        deviceDataService.getFunctionStatus(type);
+        return 0;
+    }
 }

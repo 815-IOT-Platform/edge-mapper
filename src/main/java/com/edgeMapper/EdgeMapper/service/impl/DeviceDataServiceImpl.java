@@ -121,7 +121,7 @@ public class DeviceDataServiceImpl implements DeviceDataService {
     }
 
     @Override
-    public void getBleWatchPower() {
+    public void getBleWatchPower() { //获取电量
         String order = "680300006B16";
         mqttMsgService.launchOrder(order);
     }
@@ -134,12 +134,29 @@ public class DeviceDataServiceImpl implements DeviceDataService {
     }
 
     @Override
-    public void getHeartBeats() {
+    public void getHeartBeats() { //获取心率、步数等
         String order="68060100006F16";
         mqttMsgService.launchOrder(order);
     }
 
-    public void updateBleWatchPower() {
+    @Override
+    public void getVersion() { //4.7
+        String order="680700006F16";
+        mqttMsgService.launchOrder(order);
+    }
+
+    @Override
+    public void getParameters(){
+    }
+
+    @Override
+    public void setParameters(Integer is12Hour, Integer isMetric, Integer heartBeatInterval, Integer Fatigue, Integer heartBeatInspection, Integer timeFormat, Integer Language){
+        String order="6802";
+    }
+
+    @Override
+    public void setWalkParameters(Integer height, Integer weight, Integer sex, Integer age){
+        String order="68040400";
 
     }
 

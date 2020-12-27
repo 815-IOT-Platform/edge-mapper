@@ -17,6 +17,7 @@ import org.apache.rocketmq.common.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -197,6 +198,56 @@ public class DeviceDataServiceImpl implements DeviceDataService {
     }
 
     @Override
+    public void setWeather(Map map) throws UnsupportedEncodingException {
+        String order = "680F";
+        int data_length = 0;
+        String area = (String) map.get("地点");
+        int area_length = area.getBytes("UTF-8").length; //中文对应 UTF-8编码的长度
+        String weatherContent = (String)map.get("天气内容");
+        int weatherContent_length = area.getBytes("UTF-8").length;
+        data_length = area_length + weatherContent_length + 12;     // 数据部分总长度: 中文部分 + 其他部分
+        order += String.format("%02X",data_length);                 // 数据长度
+        order += "00";
+        order += converse(String.format("%08X",(int)map.get("时间")));
+        order += converse(new String(((String) map.get("地点")).getBytes("UTF-8")));
+        order += String.format("%02X",(int)map.get("天气"));
+        order += converse(new String(((String) map.get("天气内容")).getBytes("UTF-8")));
+        order += converse(String.format("%06X",(int)map.get("温度")));
+        order += String.format("%02X",(int)map.get("紫外线强度"));
+        order += String.format("%02X",(int)map.get("风力"));
+        order += String.format("%02X",(int)map.get("风向"));
+        order += String.format("%02X",(int)map.get("空气质量"));
+        order+=crc(order);
+        order+="16";
+        mqttMsgService.launchOrder(order);
+        return;
+    }
+
+    @Override
+    public void setReminder(Map map) {  //一次设置一个时间点
+        String order = "";
+        if ((int)map.get("提醒类型") != 6) {    //常规提醒
+            order = "680907000100";
+            order += (String)map.get("提醒类型");
+            order += (String)map.get("提醒总数");
+            order += (String)map.get("提醒时间");
+            order += (String)map.get("星期重复");
+            order += crc(order);
+            order += "16";
+        }
+    }
+
+    @Override
+    public void readReminder(String data) {
+
+    }
+
+    @Override
+    public void deleteReminder(String data) {
+
+    }
+
+    @Override
     public String crc (String data){ //计算校验码
         int i=0;
         int sum=0;
@@ -219,5 +270,18 @@ public class DeviceDataServiceImpl implements DeviceDataService {
         String a = String.format("%02X",sum);
         log.info("sumHex2:"+ a.substring(a.length()-2));
         return a.substring(a.length()-2);
+    }
+
+    @Override
+    public String converse(String data) { //转化为低字节在前
+        String ans = "";
+        int index = data.length();
+        int time = index / 2;
+        while (time != 0) {
+            ans += data.substring(index-2,index);
+            index -= 2;
+            time --;
+        }
+        return ans;
     }
 }

@@ -11,7 +11,10 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by huqiaoqian on 2020/9/23
@@ -93,5 +96,33 @@ public class testController {
     public int test(@RequestParam String type){
         deviceDataService.getFunctionStatus(type);
         return 0;
+    }
+
+    @PostMapping("/setweather")
+    public void setWeather() throws UnsupportedEncodingException {
+        Map map = new HashMap<>();
+        map.put("时间",0);
+        map.put("地点","北京海淀区");
+        map.put("天气",0);
+        map.put("天气内容","天冷注意保暖");
+        map.put("最低温度",0);
+        map.put("最高温度",0);
+        map.put("当前温度",0);
+        map.put("紫外线强度",0);
+        map.put("风力",0);
+        map.put("风向",0);
+        map.put("空气质量",99);
+        deviceDataService.setWeather(map);
+    }
+
+    @PostMapping("/setReminder")
+    public void setReminder() {
+        Map map = new HashMap();
+        map.put("提醒类型",1);
+        map.put("提醒时间总数",1);
+        map.put("提醒时间","");
+        map.put("星期重复","");
+        map.put("提醒名称","大郎，该吃药了");
+        deviceDataService.setReminder(map);
     }
 }

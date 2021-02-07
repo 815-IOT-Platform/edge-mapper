@@ -16,4 +16,5 @@ public interface MqttMsgService {
     public void transferBleGatewayData(String data) throws SQLException, ClassNotFoundException;
 
 
+    public void reconncetToBleGateway();
 }

@@ -5,7 +5,7 @@ mqtt:
   mode: 0
   server: tcp://121.36.70.254:1883
 #  internal-server: tcp://172.17.74.195:1884
-  client-id: eventbus
+  client-id: eventbus24
   cleanSession: true
   connectionTimeout: 5
   keepAliveInterval: 20

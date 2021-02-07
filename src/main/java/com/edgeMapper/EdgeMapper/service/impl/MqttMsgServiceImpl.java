@@ -256,4 +256,8 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         log.info("发送手环设备功能状态{}",deviceDto);
         deviceDataService.processMsg(deviceDto);
     }
+
+    public void reconncetToBleGateway(){
+
+    }
 }

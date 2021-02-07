@@ -9,6 +9,7 @@ import java.util.List;
  * Created by huqiaoqian on 2020/12/9
  */
 public interface SignsMapper {
+
     int insert(Signs signs);
 
     int batchInsert(List<Signs> weatherList);

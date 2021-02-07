@@ -45,6 +45,5 @@ public class MysqlConfig {
     public SqlSessionTemplate mysqlSqlSessionTemplate(@Qualifier("mysqlSqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
-
 }
 

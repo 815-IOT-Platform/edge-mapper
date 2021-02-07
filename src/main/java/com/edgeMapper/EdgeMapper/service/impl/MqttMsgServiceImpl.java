@@ -5,6 +5,7 @@ import com.edgeMapper.EdgeMapper.config.Constants;
 import com.edgeMapper.EdgeMapper.model.dto.*;
 import com.edgeMapper.EdgeMapper.service.DeviceDataService;
 import com.edgeMapper.EdgeMapper.service.MqttMsgService;
+import com.edgeMapper.EdgeMapper.service.TDEngineService;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.drools.javaparser.utils.Log;
@@ -12,11 +13,11 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * Created by huqiaoqian on 2020/9/23
@@ -30,6 +31,9 @@ public class MqttMsgServiceImpl implements MqttMsgService {
 
     @Autowired
     private DeviceDataService deviceDataService;
+
+    @Autowired
+    private TDEngineService tdEngineService;
 
 
     @Override
@@ -87,8 +91,10 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         }
     }
 
+
+
     @Override
-    public void transferBleGatewayData(String data) {
+    public void transferBleGatewayData(String data) throws SQLException, ClassNotFoundException {
         if (data.substring(0,2).equals("68")) {
             //有效数据包
             String cmd = data.substring(2,4);
@@ -115,11 +121,9 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         }
     }
 
-    private void handleBleWatchPower(String data) {
+    private void handleBleWatchPower(String data) throws SQLException, ClassNotFoundException {
         int power = 0;
-        for (int i=0;i<data.length();i++) {
-            power+=(power*16+(data.charAt(i)-'0'));
-        }
+        power=Integer.parseInt(data,16);
         DeviceDto deviceDto = new DeviceDto();
         Map<String,String> properties = new HashMap<>();
         properties.put("power",String.valueOf(power));
@@ -127,16 +131,29 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         deviceDto.setPropertyType("realTime");
         deviceDto.setProperties(properties);
         log.info("发送手环电量数据{}",deviceDto);
+        /**DeviceDataDto deviceDataDto = new DeviceDataDto();
+        List<SingleDataDto> dataDtos = new LinkedList<>();
+        SingleDataDto dataDto = new SingleDataDto();
+        deviceDataDto.setDeviceName("ble-watch");
+        dataDto.setName("power");
+        dataDto.setValue(String.valueOf(power));
+        dataDtos.add(dataDto);
+        deviceDataDto.setDataDtos(dataDtos);
+        this.launchData(deviceDataDto);*/
         deviceDataService.processMsg(deviceDto);
+        tdEngineService.insertBleWatchPower(power);
     }
 
-    private void handleHeartBeats(String data){
+    private void handleHeartBeats(String data) throws SQLException, ClassNotFoundException {
         int cur=0;
-        int heartBeats=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
-        int walkCounts=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0'+4096*(data.charAt(cur++)-'0')+256*(data.charAt(cur++)-'0');
-        int miles=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0'+4096*(data.charAt(cur++)-'0')+256*(data.charAt(cur++)-'0');
-        int calolis=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0'+4096*(data.charAt(cur++)-'0')+256*(data.charAt(cur++)-'0');
-        int speed=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
+        int heartBeats=Integer.parseInt(data.substring(0,2),16);
+        int walkCounts=256*256*256*Integer.parseInt(data.substring(8,10),16)+256*256*Integer.parseInt(data.substring(6,8),16)+
+                256*Integer.parseInt(data.substring(4,6),16)+Integer.parseInt(data.substring(2,4),16);
+        int miles=256*256*256*Integer.parseInt(data.substring(16,18),16)+256*256*Integer.parseInt(data.substring(14,16),16)+
+                256*Integer.parseInt(data.substring(12,14),16)+Integer.parseInt(data.substring(10,12),16);
+        int calolis=256*256*256*Integer.parseInt(data.substring(24,26),16)+256*256*Integer.parseInt(data.substring(22,24),16)+
+                256*Integer.parseInt(data.substring(20,22),16)+Integer.parseInt(data.substring(18,20),16);
+        int speed=Integer.parseInt(data.substring(26,28),16);
         DeviceDto deviceDto = new DeviceDto();
         Map<String,String> properties = new HashMap<>();
         properties.put("heartBeats",String.valueOf(heartBeats));
@@ -148,15 +165,16 @@ public class MqttMsgServiceImpl implements MqttMsgService {
         deviceDto.setPropertyType("realTime");
         deviceDto.setProperties(properties);
         log.info("发送手环实时数据（心率、步数、里程、热量、步速）{}",deviceDto);
+        tdEngineService.insertWalkData(walkCounts);
         deviceDataService.processMsg(deviceDto);
     }
 
     private void handleVersion(String data){
         int cur=0;
-        int deviceLow=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
-        int deviceHigh=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
-        int bluetoothVersion=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
-        int deviceVersion=16*(data.charAt(cur++)-'0')+data.charAt(cur++)-'0';
+        int deviceLow=Integer.parseInt(data.substring(0,2),16);
+        int deviceHigh=Integer.parseInt(data.substring(2,4),16);
+        int bluetoothVersion=Integer.parseInt(data.substring(4,6),16);
+        int deviceVersion=Integer.parseInt(data.substring(6,8),16);
         DeviceDto deviceDto = new DeviceDto();
         Map<String,String> properties = new HashMap<>();
         properties.put("deviceLow",String.valueOf(deviceLow));

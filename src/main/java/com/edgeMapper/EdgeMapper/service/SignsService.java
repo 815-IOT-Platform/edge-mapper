@@ -17,4 +17,5 @@ public interface SignsService {
     public int save(int temperature);
 
     public int save(List<Signs> weatherList);
+
 }

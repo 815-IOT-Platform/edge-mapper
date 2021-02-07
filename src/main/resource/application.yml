@@ -13,7 +13,7 @@ spring:
   datasource:
     tdengine-server:
       driver-class-name: com.taosdata.jdbc.TSDBDriver
-      jdbc-url: jdbc:TAOS://121.36.70.254:6030/test?timezone=Asia/Beijing&charset=utf-8
+      jdbc-url: jdbc:TAOS://edge-pi:6030/test?timezone=Asia/Beijing&charset=utf-8
       username: root
       password: taosdata
       type: com.zaxxer.hikari.HikariDataSource      # Hikari连接池的设置

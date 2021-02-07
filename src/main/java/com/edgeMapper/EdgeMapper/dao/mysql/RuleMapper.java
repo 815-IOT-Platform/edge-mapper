@@ -14,4 +14,5 @@ public interface RuleMapper  {
     public int insert1(Rule rule);
 
     public List<Rule> selectAll();
+
 }

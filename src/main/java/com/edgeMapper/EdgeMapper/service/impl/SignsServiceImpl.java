@@ -43,4 +43,5 @@ public class SignsServiceImpl implements SignsService {
     public int save(List<Signs> signsList) {
         return signsMapper.batchInsert(signsList);
     }
+
 }

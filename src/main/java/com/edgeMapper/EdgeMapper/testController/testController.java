@@ -6,11 +6,14 @@ import com.edgeMapper.EdgeMapper.model.domain.Signs;
 import com.edgeMapper.EdgeMapper.model.dto.DeviceDto;
 import com.edgeMapper.EdgeMapper.service.DeviceDataService;
 import com.edgeMapper.EdgeMapper.service.SignsService;
+import com.edgeMapper.EdgeMapper.service.TDEngineService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -20,7 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("mock")
 public class testController {
-
+    @Lazy
     @Autowired
     DeviceDataService deviceDataService;
 
@@ -29,6 +32,9 @@ public class testController {
 
     @Autowired
     private RuleMapper ruleMapper;
+
+    @Autowired
+    private TDEngineService tdEngineService;
 
     @ApiOperation(value = "给mapper传送数据")
     @PostMapping("data")
@@ -46,6 +52,7 @@ public class testController {
         return signsService.init();
     }
 
+
     /**
      * Pagination Query
      * @param limit
@@ -57,6 +64,7 @@ public class testController {
     public List<Signs> querySigns(@PathVariable Long limit, @PathVariable Long offset){
         return signsService.query(limit, offset);
     }
+
 
     /**
      * upload single signs info
@@ -80,7 +88,6 @@ public class testController {
 
         return signsService.save(signsList);
     }
-
     @PostMapping("/save")
     @ApiOperation("save")
     public int save(@RequestBody Rule rule){
@@ -88,10 +95,13 @@ public class testController {
         return ruleMapper.insert1(rule);
     }
 
+
     @PostMapping("/test")
     @ApiOperation("test")
-    public int test(@RequestParam String type){
-        deviceDataService.getFunctionStatus(type);
+    public int test(@RequestParam String type) throws SQLException, ClassNotFoundException {
+        tdEngineService.testTD();
         return 0;
     }
+
+
 }

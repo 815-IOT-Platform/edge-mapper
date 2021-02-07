@@ -28,7 +28,7 @@ public class TDengineConfig {
     public SqlSessionFactory tdengineSqlSessionFactory(@Qualifier("tdengineDataSource") DataSource dataSource) throws Exception {
         SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
         bean.setDataSource(dataSource);
-        bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath:mappers/tdengine/*.xml"));
+        bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath:/mappers/tdengine/*.xml"));
         return bean.getObject();
     }
 

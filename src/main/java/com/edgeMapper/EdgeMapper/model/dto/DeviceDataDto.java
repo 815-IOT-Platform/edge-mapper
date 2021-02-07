@@ -12,6 +12,5 @@ import java.util.List;
 public class DeviceDataDto implements Serializable {
     private static final long serialVersionUID = 1579338473805266487L;
     private String deviceName;
-
     private List<SingleDataDto> dataDtos;
 }
